@@ -1,5 +1,7 @@
 # Bangalore House Price Prediction [ Simple web app deployed on Heroku ]
 </br>
+This Project is Deployed on -> https://b-house-price-predictor.herokuapp.com/
+</br></br>
 This Model / Project / Web app predicts the price of a Real Estate property / House on the basis of Features like : (area_type, location, 
 total_sqft, balcony, bathroom, BHK) 
 </br></br>
