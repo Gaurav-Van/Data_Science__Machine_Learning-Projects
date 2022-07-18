@@ -13,7 +13,7 @@ This Model / Project / Web app predicts the price of a Real Estate property / Ho
 * BHK
 <hr>
 
-### Concept Used</br></br>
+## Concept Used</br></br>
 <b>1. Data Collection -</b> From Kaggle: https://www.kaggle.com/datasets/amitabhajoy/bengaluru-house-price-data<br><br>
 <b>2. Data Pre-Procesing</b><br>
 * Removing Not-so-important columns
@@ -31,6 +31,8 @@ This Model / Project / Web app predicts the price of a Real Estate property / Ho
 * Testing Model's Score on divided data [ train_test_split and cross_val_score]
 * <b>Model Used</b> - Linear Regression (Multiple Linear Regression)
 </br></br>
+
+<b>5. Deployment - </b> Building web app with the help of streamlit and deploying it on heroku cloud
 <hr>
 The Project / Web App is built in Python using the Following Libraries:
 </br></br>
