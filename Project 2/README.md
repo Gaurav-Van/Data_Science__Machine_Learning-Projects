@@ -1,5 +1,9 @@
 #  Drug Discovery Using ML and EDA 
 
+#### Recent Discoveries in Drug Discovery of Alzheimer's - https://www.bbc.com/news/health-63749586
+
+#### Studying Alzheimer's in a Different Way - From Mathematics and Machine Learning Point of View
+
 #### <b> Predicting Bioactivity towards inhibiting the >Acetylcholinesterase enzyme - A drug target for Alzheimer's Disease </b> 
 
 - ##### <b>One Line Summary of Project</b> - To Study Drug-Protein Interaction Based on their Fingerprints
