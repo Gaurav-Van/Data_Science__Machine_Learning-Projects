@@ -1,4 +1,4 @@
-# Bangalore House Price Prediction [ Simple web app deployed on Heroku ]
+# Bangalore House Price Prediction
 </br>
 This Project is Also Deployed on -> https://gaurav-van-house-price-predictor-streamlit-heroku-app-g56zmy.streamlitapp.com/
 </br></br>
