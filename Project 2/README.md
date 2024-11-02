@@ -396,5 +396,87 @@ After Observing the Results from all 5 fingerprints
 
 ### Streamlit for building the Web App
 
+#### Molecular descriptor calculator
+
+This function performs molecular descriptor calculations using the PaDEL-Descriptor software. It runs a Java command to execute 
+the PaDEL-Descriptor JAR file with options to remove salts, standardize nitro groups, and calculate fingerprints based on the 
+PubChem Fingerprinter descriptor types. The results are saved to 'descriptors_output.csv'. After the calculation, the input file 
+'molecule.smi' is deleted to clean up the working directory. The function uses the subprocess module to handle the execution of the 
+Java command and captures any output or errors generated during the process.
+
+```python
+def desc_calc():
+    # Performs the descriptor calculation
+    bashCommand = "java -Xms2G -Xmx2G -Djava.awt.headless=true -jar ./PaDEL-Descriptor/PaDEL-Descriptor.jar -removesalt -standardizenitro -fingerprints -descriptortypes " \
+                  "./PaDEL-Descriptor/PubchemFingerprinter.xml -dir ./ -file descriptors_output.csv"
+    process = subprocess.Popen(bashCommand.split(), stdout=subprocess.PIPE)
+    output, error = process.communicate()
+    os.remove('molecule.smi')
+```
+#### Model Building
+
+```python
+def build_model(input_data):
+    # Reads in saved regression model
+    load_model = pickle.load(open('AChE_model_pubchem.pkl', 'rb'))
+    # Apply model to make predictions
+    prediction = load_model.predict(input_data)
+    st.header('**Prediction output**')
+    prediction_output = pd.Series(prediction, name='pIC50')
+    molecule_name = pd.Series(load_data[1], name='molecule_name')
+    df = pd.concat([molecule_name, prediction_output], axis=1)
+    st.write(df)
+    st.markdown(filedownload(df), unsafe_allow_html=True)
+    st.header('**Prediction Graph**')
+    st.latex('pIC50 = -log (IC50)')
+    fig = plt.figure()
+    ax = sns.barplot(y=df['molecule_name'], x=df['pIC50'], errwidth=0)
+    temp = int(max(df['pIC50'])) + 2
+    plt.xticks(np.arange(0, temp, 0.5))
+    plt.xlim([0, temp])
+    for i in ax.containers:
+        ax.bar_label(i, )
+    plt.ylabel(" CHEMBL_ID ", size=12, fontstyle='normal', weight=600)
+    plt.xlabel("pIC50 Values ", size=12, fontstyle='normal', weight=600)
+    plt.title("pIC50 value of various Molecules", fontstyle='normal', weight=600)
+    st.pyplot(fig)
+```
+#### Sidebar
+```python
+with st.sidebar.header('1. Upload your CSV data'):
+    uploaded_file = st.sidebar.file_uploader("Upload your input file", type=['txt'])
+    st.sidebar.markdown("""
+[Example input file](https://drive.google.com/file/d/1BkljjkCckFPn1mKLXIBsAmLk9d-ZBQ1R/view?usp=sharing)
+""")
+
+if st.sidebar.button('Predict'):
+    load_data = pd.read_table(uploaded_file, sep=' ', header=None)
+    load_data.to_csv('molecule.smi', sep='\t', header=False, index=False)
+
+    st.header('**Original input data**')
+    st.write(load_data)
+
+    with st.spinner("Calculating descriptors..."):
+        desc_calc()
+
+    # Read in calculated descriptors and display the dataframe
+    st.header('**Calculated molecular descriptors**')
+    desc = pd.read_csv('descriptors_output.csv')
+    st.write(desc)
+    st.write(desc.shape)
+
+    # Read descriptor list used in previously built model
+    st.header('**Subset of descriptors from previously built model**')
+    Xlist = list(pd.read_csv('descriptor_list.csv').columns)
+    desc_subset = desc[Xlist]
+    st.write(desc_subset)
+    st.write(desc_subset.shape)
+
+    # Apply trained model to make prediction on query compounds
+    build_model(desc_subset)
+else:
+    st.info('Upload input data in the sidebar to start!')
+```
+
 <hr>
 
