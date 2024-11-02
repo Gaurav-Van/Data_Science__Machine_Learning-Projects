@@ -11,7 +11,10 @@ Using Natural Language Processing, `nltk` and Machine Learning to classify comme
   
 `Instead of Multiclass classification, Binary Classification of Each Category is performed`
 
+[![Watch the video](https://img.youtube.com/vi/4SfdxNDU6DQ/hqdefault.jpg)](https://www.youtube.com/embed/4SfdxNDU6DQ)
+
 Web App Link - https://gaurav-van-toxic-comment-web-app-app-24y37c.streamlitapp.com/
+
 <hr>
 
 ## Libraries and Data Collection 
