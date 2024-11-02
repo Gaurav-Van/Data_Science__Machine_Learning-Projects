@@ -153,16 +153,257 @@ def frequent_words(dataset, category):
 
 ## Model Building
 
-* <b>VECTORIZATION :-</b> Using TF-IDF and Unigram Approach
-* <b>Model Used For Each Category :-</b> KNN, Logistic Regression, SVM, CNB, BNB, DT and RF
-* <b>Model Selected/b> - Logistic Regression
-* Exporting Trained ML Models as 6 pickle files [ one of each category ] 
-* Exporting Trained Vectorized Models as 6 pickle files [ one for each category ] 
-</br></br>
+### VECTORIZATION: Using TF-IDF and Unigram Approach
 
+**Vectorization** is a key process in natural language processing (NLP) that converts text data into numerical vectors for machine learning models. The **TF-IDF (Term Frequency-Inverse Document Frequency)** approach, combined with the **unigram** model, is a popular method for this. TF-IDF evaluates the importance of words by considering their frequency in a document (TF) and their rarity across a corpus (IDF), thus highlighting significant terms while downplaying common ones. The unigram model treats each word as a single feature, capturing the frequency and importance of individual words without considering their order or context. This combination is particularly effective for tasks like text classification and sentiment analysis, where understanding the relevance of specific words can significantly enhance model performance. Would you like to explore more about other vectorization techniques or see some code examples?
+
+**Function to perform Vectorization and model building**
+
+Model Used For Each Category: KNN, Logistic Regression, SVM, CNB, BNB, DT and RF
+
+```python
+def vector_model(df, category, vectorizer, ngram):
+    X = df['comment_text'].fillna(' ')
+    Y = df[category]
+
+    X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.3, random_state=42)
+
+    vector = vectorizer(ngram_range=(ngram), stop_words='english')
+
+    X_train_scal = vector.fit_transform(X_train)
+    X_test_scal = vector.transform(X_test)
+    
+    #KNN
+    knn = KNeighborsClassifier(n_neighbors=5)
+    knn.fit(X_train_scal, Y_train)
+    Y_pred_knn = knn.predict(X_test_scal)
+    print(f"Knn done -> It's classification report for {category} category \n {classification_report(Y_test, Y_pred_knn)} ")
+    print("\n----------------------------------------------------------------------")
+
+    #logistic regression
+    lr = LogisticRegression()
+    lr.fit(X_train_scal, Y_train)
+    Y_pred_lr = lr.predict(X_test_scal)
+    print(f"\nLr done -> It's classification report for {category} category \n {classification_report(Y_test, Y_pred_lr)} ")
+    print("\n----------------------------------------------------------------------\n")
+
+    #Support Vector Machine
+    svm = SVC(kernel='rbf')
+    svm.fit(X_train_scal, Y_train)
+    Y_pred_svm = svm.predict(X_test_scal)
+    print(f"\nsvm done -> It's classification report for {category} category \n {classification_report(Y_test, Y_pred_svm)} ")
+    print("\n----------------------------------------------------------------------\n")
+
+    #Naive Bayes
+    cnb = ComplementNB()
+    cnb.fit(X_train_scal, Y_train)
+    Y_pred_cnb = cnb.predict(X_test_scal)
+    print(f"\ncnb done -> It's classification report for {category} category \n {classification_report(Y_test, Y_pred_cnb)} ")
+    print("\n----------------------------------------------------------------------\n")
+
+    bnb = BernoulliNB()
+    bnb.fit(X_train_scal, Y_train)
+    Y_pred_bnb = bnb.predict(X_test_scal)
+    print(f"\nbnb done -> It's classification report for {category} category \n {classification_report(Y_test, Y_pred_bnb)} ")
+    print("\n----------------------------------------------------------------------\n")
+
+    #Decision Tree Classifier
+    dt = DecisionTreeClassifier(criterion='entropy', min_samples_split=2, random_state=42)
+    dt.fit(X_train_scal, Y_train)
+    Y_pred_dt = dt.predict(X_test_scal)
+    print(f"\nDT done -> It's classification report for {category} category \n {classification_report(Y_test, Y_pred_dt)} ")
+    print("\n----------------------------------------------------------------------\n")
+
+    #Random Forest Classifier
+    rf = RandomForestClassifier(n_estimators=105, min_samples_split=2, random_state=42)
+    rf.fit(X_train_scal, Y_train)
+    Y_pred_rf = rf.predict(X_test_scal)
+    print(f"\nRF done -> It's classification report for {category} category \n {classification_report(Y_test, Y_pred_rf)} ")
+    print("\n----------------------------------------------------------------------\n")
+
+    f1_scores = [round(f1_score(Y_pred_knn, Y_test), 2), round(f1_score(Y_pred_lr, Y_test), 2), round(f1_score(Y_pred_svm, Y_test), 2),
+                 round(f1_score(Y_pred_cnb, Y_test), 2), round(f1_score(Y_pred_bnb, Y_test), 2), round(f1_score(Y_pred_dt, Y_test), 2),
+                 round(f1_score(Y_pred_rf, Y_test), 2)]
+    print(f"F1_scores for {category} category Are calculated")
+
+    Scores = {f'F1_Score - {category}':f1_scores}
+    Scores_df = pd.DataFrame(Scores, index=['KNN', 'Logistic Regression', 'SVM', 'Complement NB', 'Bernoulli NB', 'Decision Tree', 'Random Forest'])
+    return Scores_df
+```
+
+#### F1 Scores of One of the Category: Toxic
+
+![image](https://github.com/user-attachments/assets/519c180f-4b28-4c01-871a-bcd785488510)
+
+#### Visualization of F1-Score of all Categories
+```python
+# Visualization of F1-Score of all categories
+result = pd.concat([result_toxic, result_severe_toxic, result_threat, result_obscene, result_insult, result_identity_hate], axis=1)
+result = result.transpose()
+plt.figure(figsize=(15,15))
+sns.lineplot(data=result, markers=True)
+plt.legend(loc='best')
+```
+![image](https://github.com/user-attachments/assets/ac6d26bf-185e-4e28-b624-76815c11a3de)
+
+Model Selected: Logistic Regression
+- Exporting Trained ML Models as 6 pickle files [ one of each category ] 
+- Exporting Trained Vectorized Models as 6 pickle files [ one for each category ]
+  ```python
+  def getfiles(df, label):
+    x = df.comment_text.fillna(' ')
+    y = df[label]
+    
+    tfv_f = TfidfVectorizer(ngram_range=(1,1), stop_words='english')
+    X_vect = tfv_f.fit_transform(x)
+    
+    with open(f'{label + "_vect"}.pkl', 'wb') as f:
+        pickle.dump(tfv_f, f)
+    
+    log = LogisticRegression()
+    log.fit(X_vect, y)
+    
+    with open(f'{label + "_model"}.pkl', 'wb') as f:
+        pickle.dump(log, f)
+  list_c = ['toxic', 'severe_toxic', 'threat', 'obscene', 'insult', 'identity_hate']
+  list_d = [df_toxic, df_severe_toxic, df_threat, df_obscene, df_insult, df_identity_hate]
+  for i, j in zip(list_d, list_c):
+      getfiles(i, j)
+  ```
 <hr>
 
 ## Building web app with the help of streamlit and langchain. Deploying it on Streamlit cloud
+```python
+import numpy as np
+import pandas as pd
+import pickle
+import streamlit as st
+from PIL import Image
+from langchain_core.messages import AIMessage, HumanMessage
+```
+
+Streamlit is an open-source Python framework that simplifies the process of creating and sharing interactive web applications. Designed 
+with data scientists and machine learning engineers in mind, Streamlit allows you to build data-driven apps with minimal code. Its intuitive 
+API lets you add widgets, charts, and other interactive elements effortlessly, making it an excellent tool for quickly prototyping and deploying data apps.
+
+LangChain is a powerful library for building applications that leverage large language models (LLMs). It provides tools to manage and orchestrate interactions
+between users and AI models. Two key components of LangChain are the AIMessage and HumanMessage classes. HumanMessage represents messages from users, capturing
+their inputs and queries. AIMessage, on the other hand, represents responses generated by the AI model.
+
+**Langchain and Streamlit Introduction Configuration after importing models**
+```python
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = [
+         AIMessage(content="Hello! I serve as a Content Moderator. My role is to evaluate your comments for toxicity across
+        six distinct categories. Rest assured, I am proficient in my job")
+    ]
+
+st.title("Toxic Comment Classifier Using NLP and ML")
+image = Image.open('Image.jpg')
+st.image(image, use_column_width=True)
+```
+**Function to Classify Comment into 6 Toxic Category**
+```python
+def toxic_classify(Input):
+
+    classifications = []
+
+    if Input is None or len(Input) == 0:
+        return
+    # toxic
+    vect = toxic.transform([Input])
+    zero = toxic_model.predict_proba(vect)[:, 0][0]
+    one = toxic_model.predict_proba(vect)[:, 1][0]
+    if (zero >= 0.42 and one <= 0.58) and (zero <= 0.58 and one >= 0.42):
+        classifications.append('Neutral for Toxic Category')
+    elif one > 0.58:
+        classifications.append('Toxic')
+    else:
+       classifications.append('Non Toxic')
+
+    # severe_toxic
+    vect = severe_toxic.transform([Input])
+    zero = severe_toxic_model.predict_proba(vect)[:, 0][0]
+    one = severe_toxic_model.predict_proba(vect)[:, 1][0]
+    if (zero >= 0.42 and one <= 0.58) and (zero <= 0.58 and one >= 0.42):
+        classifications.append('Neutral for Severe Toxic Category')
+    elif one > 0.58:
+        classifications.append('Severe toxic')
+    else:
+       classifications.append('Non Severe toxic')
+
+    # threat
+    vect = threat.transform([Input])
+    zero = threat_model.predict_proba(vect)[:, 0][0]
+    one = threat_model.predict_proba(vect)[:, 1][0]
+    if (zero >= 0.42 and one <= 0.58) and (zero <= 0.58 and one >= 0.42):
+       classifications.append('Neutral for Threat Category')
+    elif one > 0.58:
+        classifications.append('Threat')
+    else:
+        classifications.append('Non Threat')
+
+    # obscene
+    vect = obscene.transform([Input])
+    zero = obscene_model.predict_proba(vect)[:, 0][0]
+    one = obscene_model.predict_proba(vect)[:, 1][0]
+    if (zero >= 0.42 and one <= 0.58) and (zero <= 0.58 and one >= 0.42):
+       classifications.append('Neutral for Obscene Category')
+    elif one > 0.58:
+        classifications.append('Obscene')
+    else:
+       classifications.append('Non Obscene')
+
+    # insult
+    vect = insult.transform([Input])
+    zero = insult_model.predict_proba(vect)[:, 0][0]
+    one = insult_model.predict_proba(vect)[:, 1][0]
+    if (zero >= 0.42 and one <= 0.58) and (zero <= 0.58 and one >= 0.42):
+        classifications.append('Neutral for Insult Category')
+    elif one > 0.58:
+        classifications.append('Insult')
+    else:
+         classifications.append('Non Insult')
+
+    # identity_hate
+    vect = identity_hate.transform([Input])
+    zero = identity_hate_model.predict_proba(vect)[:, 0][0]
+    one = identity_hate_model.predict_proba(vect)[:, 1][0]
+    if (zero >= 0.42 and one <= 0.58) and (zero <= 0.58 and one >= 0.42):
+         classifications.append('Neutral for Identity hate Category')
+    elif one > 0.58:
+         classifications.append('Identity hate')
+    else:
+         classifications.append('Non Identity hate')
+    return classifications
+```
+**Langchain Sessions for AI and Human Messages**
+```python
+for message in st.session_state.chat_history:
+    if isinstance(message, AIMessage):
+        with st.chat_message("AI"):
+            st.markdown(message.content, unsafe_allow_html=True)
+    elif isinstance(message, HumanMessage):
+        with st.chat_message("Human"):
+            st.markdown(message.content)
+    
+if user_query is not None and user_query.strip() != "":
+    st.session_state.chat_history.append(HumanMessage(content=user_query))
+
+    result = toxic_classify(user_query)
+
+    with st.chat_message("Human"):
+        st.markdown(user_query)
+
+    with st.chat_message("AI"):
+        try:
+            response = f"Hmm.. According to my analysis, your comment <span style='color:yellow'><i>{user_query}</i></span> can be classified as: \n\n" + "\n".join(f"- {i}" for i in result)
+            st.markdown(response, unsafe_allow_html=True)
+            st.session_state.chat_history.append(AIMessage(content=response))
+        except Exception as e:
+            st.warning("I am Sorry. It looks like I made some mistake while trying to classify. Please Try Again. I will try my best")
+            st.warning("Tip: Check for any mistake in the comment. Also Supported Language: English")
+```
 
 <hr>
 
