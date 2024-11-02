@@ -294,8 +294,7 @@ their inputs and queries. AIMessage, on the other hand, represents responses gen
 ```python
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = [
-         AIMessage(content="Hello! I serve as a Content Moderator. My role is to evaluate your comments for toxicity across
-        six distinct categories. Rest assured, I am proficient in my job")
+         AIMessage(content="Hello! I serve as a Content Moderator. My role is to evaluate your comments for toxicity across six distinct categories. Rest assured, I am proficient in my job")
     ]
 
 st.title("Toxic Comment Classifier Using NLP and ML")
