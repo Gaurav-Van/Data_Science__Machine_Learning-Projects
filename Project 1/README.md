@@ -162,28 +162,69 @@ Outliers are those data points those are way off from our main data set [ abnorm
 
 <hr>
 
-<b>3. EDA -</b> Performing Data analysis on the basis of Domain Knowledge [ do check the jupyter file ] 
-</br></br>
-<b>4. Model Building</b><br><br>
+## EDA: Performing Data analysis on the basis of Domain Knowledge
 
-* Encoding 
-* As i am dealing with Regression problem, that too linear models so no need of Feature Scalling 
-* Dividing the data by Train test split
-* Testing Model's Score on divided data [ train_test_split and cross_val_score]
-* <b>Model Used</b> - Linear Regression (Multiple Linear Regression)
-</br></br>
+### Finding Correlation between Independent and dependent Variables / features
 
-<b>5. Deployment - </b> Building web app with the help of streamlit and deploying it on heroku cloud
+```python
+num_corr = Data_frame[['total_sqft', 'bathroom', 'balcony', 'BHK']].corr()
+sns.heatmap(num_corr, cmap='RdBu')
+plt.title("Heatmap of Correlation between numeric Independent Features")
+plt.show()
+```
+![image](https://github.com/user-attachments/assets/2923f6b8-f957-48f6-b2c8-7ceb27f5e43f)
+
+The P value from pearson correlation is 0 ( < 0.05 ) so our Correlation coef are statically significant balcony the weakest while total_sqft the strongest
+Correlation is not equal to causation -> Balcony might be weakest but is an important feature in deciding the price of a Property
+
+### Let's Understand Categorical Features 
+
+**Average price of category from categorical features**
+
+```python
+df3 = Data_frame[['area_type','location', 'price']]
+df_p = df3.groupby(['area_type','location'], as_index=False).mean().sort_values(ascending=False, by='price')
+df_p.set_index('area_type', inplace=True)
+df_p.rename(columns={'price':'avg-price'}, inplace=True)
+df_pivot = pd.pivot_table(df_p, index='area_type', columns='location', values='avg-price')
+df_pivot.fillna(0, inplace=True)
+df_pivot 
+```
+![image](https://github.com/user-attachments/assets/1cda96af-6bf3-4a9f-b4dd-b4b8bde7c42b)
+
 <hr>
-The Project / Web App is built in Python using the Following Libraries:
-</br></br>
 
- * numpy
- * pandas
- * matplotlib
- * seaborn
- * sklearn
- * pickle
- * flask
- * streamlit
- * json
+## Model Building
+
+### Encoding 
+Encoding the Categoricals features - area_type and location
+```python
+one_dum = pd.get_dummies(Data_frame['area_type'])
+Data_frame = pd.concat([Data_frame, one_dum], axis=1)
+Data_frame.drop(['area_type'], axis=1, inplace=True)
+ne_dum = pd.get_dummies(Data_frame['location'])
+Data_frame = pd.concat([Data_frame, ne_dum], axis=1)
+Data_frame.drop(['location'], axis=1, inplace=True)
+```
+**As I am dealing with Regression problem, that too linear models so feature scalling is ignored here**
+
+### Dividing the data by Train test split
+![image](https://github.com/user-attachments/assets/fe79989a-a77e-4354-a7ed-c1b78b5e76b1)
+
+### Multiple Linear Regression Model
+```python
+LinearModel = LinearRegression()
+LinearModel.fit(X_train, Y_train)
+Y_pred = LinearModel.predict(X_test)
+Y_pred
+```
+- R^2 Value: 0.824561107732018
+- MSE Value: 669.3971397935138
+- RMSE Value: 25.87271032
+
+
+<hr>
+
+## Deployment Building web app with the help of streamlit and deploying it on streamlit cloud
+   
+<hr>
