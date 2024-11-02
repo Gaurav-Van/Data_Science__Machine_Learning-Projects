@@ -96,9 +96,69 @@ total_sqft feature will make the data type of that feature -> float
   ```
 ### Outlier detection using Box plot, Outlier treatment using Flooring and Capping 
 
+Outliers are those data points those are way off from our main data set [ abnormal data points ] Now they can be of `Type1-> Data points / numerical` and 
+`Type2 -> Domain error [ abnormality in the Domain Knowledge ]`. Type1 and Type2 are similar, Not that Different
 
+- **Fixing Type 1 Outliers**: Problem in total_sqft, bathroom, price, BHK and price_per_sqft
+  
+  ```python
+  # Applying Quantile Based Flooring and capping
+  lower_bound = Data_frame['total_sqft'].quantile(0.10)
+  upper_bound = Data_frame['total_sqft'].quantile(0.90)
+  Data_frame['total_sqft'] = np.where(Data_frame['total_sqft'] < lower_bound, lower_bound, Data_frame['total_sqft'])
+  Data_frame['total_sqft'] = np.where(Data_frame['total_sqft'] > upper_bound, upper_bound, Data_frame['total_sqft'])
 
-### Adding new data on the basis of Domain Knowledge
+  # Bathroom - small quanitites of Outliers so Replace them with median 
+  median = Data_frame['bathroom'].quantile(0.50)
+  upper_out = Data_frame['bathroom'].quantile(0.95)
+  Data_frame['bathroom'] = np.where(Data_frame['bathroom'] > upper_out, median, Data_frame['bathroom'])
+
+  # Applying Quantile Based Flooring and capping
+  lower_bound = Data_frame['price'].quantile(0.10)
+  upper_bound = Data_frame['price'].quantile(0.90)
+  Data_frame['price'] = np.where(Data_frame['price'] < lower_bound, lower_bound, Data_frame['price'])
+  Data_frame['price'] = np.where(Data_frame['price'] > upper_bound, upper_bound, Data_frame['price'])
+  ```
+- **Fixing Type 2 Outliers**
+
+  In a General Real Esate Property / House, the number of Bathrooms depends on number of Bedrooms [BHK]. The equations in general is
+  total Bathroom <= BHK + 1 [1 - extra for Guest] It is unusual to have 2 more bathrooms than number of bedrooms in a home
+
+  ```python
+  Data_frame = Data_frame[(Data_frame['bathroom'] < (Data_frame['BHK'] + 2))]
+  Data_frame.shape
+  Data_frame['balcony'] = Data_frame['balcony'].astype('int')
+  ```
+  Problem here is that in some cases - price of 2bhk is more than price of 3bhk for similar sqft area and same location and hence is a
+  unexpected error or outlier. Here Prices of 2bhk are more than 3bhk for similar or same total_sqft area, it means price_per_sqft of 2bhk
+  should be more than 3bhk for the same location and similar total_sqft area So now we can remove those 3BHK whose price_per_sqft is less than
+  mean price_per_sqft of 2 BHK. We here are dealing with same location [ because Different Location will affect the price ]
+
+  ```python
+  def remove_bhk_outliers(df):
+    exclude_indices = np.array([])
+    for location, location_df in df.groupby('location'):
+        bhk_stats = {}
+        for bhk, bhk_df in location_df.groupby('BHK'):
+            bhk_stats[bhk] = {
+                'mean': np.mean(bhk_df.price_per_sqft),
+                'std': np.std(bhk_df.price_per_sqft),
+                'count': bhk_df.shape[0]
+            }
+        for bhk, bhk_df in location_df.groupby('BHK'):
+            stats = bhk_stats.get(bhk-1)
+            if stats and stats['count']>5:
+                exclude_indices = np.append(exclude_indices, bhk_df[bhk_df.price_per_sqft<(stats['mean'])].index.values)
+    return df.drop(exclude_indices,axis=0)
+  Data_frame = remove_bhk_outliers(Data_frame)
+  Data_frame.shape
+  ```
+  In general Square ft per Bedroom is 300 anything less than that is suspicious and can be declared as outlier
+
+  ```python
+  Data_frame=Data_frame[~(Data_frame.total_sqft/Data_frame.BHK<300)]
+  Data_frame.shape
+  ```
 
 <hr>
 
