@@ -1,16 +1,8 @@
 # Bangalore House Price Prediction
-</br>
-This Project is Also Deployed on -> https://gaurav-van-house-price-predictor-streamlit-heroku-app-g56zmy.streamlitapp.com/
-</br></br>
-This Model / Project / Web app predicts the price of a Real Estate property / House on the basis of Features like: 
-</br></br>
+This Project predicts the price of a Real Estate property on the basis of Features like: `area_type`, `location`, `total_sqft`, `balcony`, `bathroom` and `BHK`
 
-* area_type 
-* location 
-* total_sqft
-* balcony
-* bathroom 
-* BHK
+https://gaurav-van-house-price-predictor-streamlit-heroku-app-g56zmy.streamlitapp.com/
+
 <hr>
 
 ## Concept Used</br></br>
