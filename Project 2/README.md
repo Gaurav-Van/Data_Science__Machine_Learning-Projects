@@ -285,10 +285,113 @@ pubchem Fingerprints. Molecular Fingerprint are useful in predicting drug Bindin
 
 **Bit allocation in Pubchem Fingerprints**
 
+![image](https://github.com/user-attachments/assets/129bdcf5-e9ea-43fe-bbde-41cfa24eeddf)
+
+**Software used : PaDEL-Descriptor** `! wget https://github.com/dataprofessor/bioinformatics/raw/master/padel.zip`
+```python
+df_final = pd.read_csv('AChE_Bioactivity_data_4.csv')
+df_final_selected = df_final[['canonical_smiles', 'molecule_chembl_id']]
+df_final_selected.to_csv('molecule.smi', sep='\t', index=False, header=False)
+```
+**PaDEL-Descriptor** 
+
+![image](https://github.com/user-attachments/assets/890d80d2-fe42-4e4a-a7d7-260255309ef2)
+![image](https://github.com/user-attachments/assets/a725ef57-c450-440a-97ab-aec20a4905b5)
+
+`Result obtained from the Software is Stored in Fingerprints.csv`
 
 <hr>
 
-### Regression Concept of Machine Learning [<b> Regression Analysis</b>]
+### Regression Analysis of PubChem Fingerprints
+_similar cases for other fingerprints_
+
+#### Libraries Required
+```python
+import numpy as np
+import pandas as pd
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+%matplotlib inline
+import seaborn as sns
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import mean_squared_error as mse
+from sklearn.metrics import r2_score
+from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import KFold
+from sklearn.feature_selection import VarianceThreshold
+import lazypredict
+from lazypredict.Supervised import LazyRegressor
+import lightgbm as ltb
+import math
+from scipy import stats
+from sklearn.experimental import enable_hist_gradient_boosting
+from sklearn.ensemble import HistGradientBoostingRegressor
+```
+**Variance Threshold**
+
+The Variance Threshold is a feature selection technique used in data analysis and machine learning to remove features with 
+low variance. This method is particularly useful in simplifying models, reducing overfitting, and improving computational efficiency.
+
+```python
+def remove_low_variance(input_data, threshold):
+    selection = VarianceThreshold(threshold)
+    selection.fit(input_data)
+    return input_data[input_data.columns[selection.get_support(indices=True)]]
+
+X = remove_low_variance(X, threshold=0.1)
+
+p_value = []
+col_name = []
+names = []
+for x in X.columns:
+    w = stats.pearsonr(DataSet[x], Y)
+    p_value.append(w[1])
+    col_name.append(x)
+Imp = pd.DataFrame({'Column_name':col_name,
+                    'p-value':p_value})
+filt = Imp['p-value'] > 0.05
+df = Imp[filt]
+for i in df['Column_name']:
+    names.append(i)
+
+X.drop(names, axis=1, inplace=True)
+X.to_csv('descriptor_list.csv', index=False)
+```
+**Data Splitting**
+
+```python
+X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.20, random_state=42)
+print(f"{X_train.shape} \t {Y_train.shape} \n {X_test.shape} \t {Y_test.shape}")
+```
+
+**Lazy Regressor for Regression Analysis**
+
+```python
+clf = LazyRegressor(verbose=0,ignore_warnings=True, custom_metric=None)
+models_test,predictions_test = clf.fit(X_train, X_test, Y_train, Y_test)
+plt.figure(figsize=(5, 10))
+sns.set_theme(style="whitegrid")
+ax = sns.barplot(y=predictions_test.index, x="RMSE", data=predictions_test)
+ax.set(xlim=(0, 10))
+```
+![image](https://github.com/user-attachments/assets/00c801a8-da0c-4b75-9586-538a52863c0f)
+
+```python
+import pickle
+pickle.dump(model, open('AChE_model_pubchem.pkl', 'wb'))
+```
+**Key Takeaways**
+
+After Observing the Results from all 5 fingerprints
+- Data is in form of 0s and 1s, so no place for encoding and Feature Scalling
+- From the list from Lazy Predict and our random forest model with hyperparameter tuning, we can tell that,
+- The range of R square values ranges from 20-28 percent, which is quite low
+- The error / loss / MSE value ranges from 1-2, which is optimal
+
 <hr>
 
 ### Streamlit for building the Web App
