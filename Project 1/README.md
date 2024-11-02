@@ -222,9 +222,112 @@ Y_pred
 - MSE Value: 669.3971397935138
 - RMSE Value: 25.87271032
 
+![image](https://github.com/user-attachments/assets/3fa926e0-e281-4e49-a62c-f031c691611c)
+
+### Decision tree for Regression
+```python
+Tree_model = DecisionTreeRegressor(max_depth=5)
+Tree_model.fit(X_train, Y_train)
+Y_hat = Tree_model.predict(X_test)
+```
+- R^2 Value: 0.8004133365466866
+
+### Random Forest 
+```python
+rf = RandomForestRegressor(n_estimators=105)
+rf.fit(X_train, Y_train)
+Y_pred_rf = rf.predict(X_test)
+```
+- R^2 Value: 0.8414810182841019
+
+### Lazy Predict 
+```python
+import lazypredict
+from lazypredict.Supervised import LazyRegressor
+clf = LazyRegressor(verbose=0,ignore_warnings=True, custom_metric=None)
+models_test,predictions_test = clf.fit(X_train, X_test, Y_train, Y_test)
+```
+### Exporting Model and Columns
+```python
+import pickle
+with open('bangalore_home_prices_model.pickle', 'wb') as obj:
+    pickle.dump(LinearModel, obj)
+
+import json
+columns = {
+    'Columns': [col.lower() for col in X.columns]
+}
+with open("Columns.json", 'w') as f:
+    f.write(json.dumps(columns))
+```
 
 <hr>
 
 ## Deployment Building web app with the help of streamlit and deploying it on streamlit cloud
-   
+
+### Importing Model and Columns
+```python
+with open(
+        r"C:\Users\Asus\PycharmProjects\Real_Estate_price_prediction\Model\bangalore_home_prices_model.pickle", 
+        'rb') as f:
+    __model = pickle.load(f)
+
+with open(r"C:\Users\Asus\PycharmProjects\Real_Estate_price_prediction\Model\Columns.json", 'r') as obj:
+    __data_columns = json.load(obj)["Columns"]
+    __area_types = __data_columns[4:8]
+    __locations = __data_columns[8:]
+```
+### Prediction Function
+```python
+def get_predicted_price(area_type, location, sqft, balcony, bathroom, BHK):
+    try:
+        area_index = __data_columns.index(area_type.lower())
+        loc_index = __data_columns.index(location.lower())
+    except ValueError as e:
+        area_index = -1
+        loc_index = -1
+
+    lis = np.zeros(len(__data_columns))
+    lis[0] = sqft
+    lis[1] = bathroom
+    lis[2] = balcony
+    lis[3] = BHK
+
+    if loc_index >= 0 and area_index >= 0:
+        lis[area_index] = 1
+        lis[loc_index] = 1
+
+    price = round(__model.predict([lis])[0], 2)
+    strp = ' lakhs'
+
+    if math.log10(price) >= 2:
+        price = price / 100
+        price = round(price, 2)
+        strp = " crores"
+
+    return str(price) + strp
+```
+### Streamlit Web App
+```python
+def main():
+    global result
+    st.title("Bangalore House Price Predictor")
+    html_temp = """
+           <div>
+           <h2>House Price Prediction ML app</h2>
+           </div>
+           """
+    st.markdown(html_temp, unsafe_allow_html=True)
+    total_sqft = st.text_input("Total_sqft")
+    balcony = st.text_input("Number of Balconies")
+    bathroom = st.text_input("Number of Bathrooms")
+    BHK = st.text_input("BHK")
+    area_type = st.selectbox("Area Type", __area_types)
+    location = st.selectbox("Location", __locations)
+
+    if st.button("Predict"):
+        result = get_predicted_price(area_type, location, total_sqft, balcony, bathroom, BHK)
+
+    st.success(f"Price = {result}")
+```
 <hr>
