@@ -179,6 +179,107 @@ print(f'Testing Size : {test_data.shape}   |  Testing Labels : {test_labels.shap
 
 ## Constructing Model
 
+Creating a Convolutional Neural Network (CNN) model using generic functions and classes to handle different parameters. The model is designed 
+for image classification tasks and includes custom callback functionality to stop training once a desired accuracy is achieved.
+
+### Functions and Classes
+
+1. **Convolutional Block Function (`conv_block`)**
+   - **Purpose**: Creates a block of convolutional layers with specified filters and activation functions.
+   - **Parameters**:
+     - `filters`: Number of filters for the convolutional layers.
+     - `act`: Activation function to use (default is `'relu'`).
+   - **Returns**: A `Sequential` model containing two convolutional layers, batch normalization, and max pooling.
+
+   ```python
+   def conv_block(filters, act='relu'):
+       block = Sequential()
+       block.add(Conv2D(filters, 3, activation=act, padding='same'))
+       block.add(Conv2D(filters, 3, activation=act, padding='same'))
+       block.add(BatchNormalization())
+       block.add(MaxPool2D())
+       return block
+   ```
+
+2. **Dense Block Function (`dense_block`)**
+   - **Purpose**: Creates a block of dense layers with specified units, dropout rate, and activation functions.
+   - **Parameters**:
+     - `units`: Number of units for the dense layers.
+     - `dropout_rate`: Dropout rate for regularization.
+     - `act`: Activation function to use (default is `'relu'`).
+   - **Returns**: A `Sequential` model containing two dense layers, batch normalization, and dropout.
+
+   ```python
+   def dense_block(units, dropout_rate, act='relu'):
+       block = Sequential()
+       block.add(Dense(units, activation=act))
+       block.add(Dense(units, activation=act))
+       block.add(BatchNormalization())
+       block.add(Dropout(dropout_rate))
+       return block
+   ```
+
+3. **Model Construction Function (`construct_model`)**
+   - **Purpose**: Constructs the CNN model using the defined convolutional and dense blocks.
+   - **Parameters**:
+     - `act`: Activation function to use throughout the model (default is `'relu'`).
+   - **Returns**: A `Sequential` model ready for training.
+
+   ```python
+   def construct_model(act='relu'):
+       model = Sequential([
+           Input(shape=(*IMAGE_SIZE, 3)),
+           Conv2D(16, 3, activation=act, padding='same'),
+           Conv2D(16, 3, activation=act, padding='same'),
+           MaxPool2D(),
+           conv_block(32),
+           conv_block(64),
+           Dropout(0.2),
+           conv_block(128),
+           Dropout(0.2),
+           conv_block(256),
+           Dropout(0.2),
+           Flatten(),
+           dense_block(512, 0.7),
+           dense_block(128, 0.5),
+           dense_block(64, 0.3),
+           Dense(4, activation='softmax')
+       ], name="cnn_model")
+       return model
+   ```
+
+4. **Custom Callback Class (`MyCallback`)**
+   - **Purpose**: Custom callback to stop training when validation accuracy exceeds 99%.
+   - **Methods**:
+     - `on_epoch_end`: Checks validation accuracy at the end of each epoch and stops training if the threshold is met.
+
+   ```python
+   class MyCallback(tf.keras.callbacks.Callback):
+       def on_epoch_end(self, epoch, logs={}):
+           if logs.get('val_acc') > 0.99:
+               print("\nReached accuracy threshold! Terminating training.")
+               self.model.stop_training = True
+   ```
+
+#### Model Compilation and Summary
+- **Callbacks**: List of callbacks to use during training, including the custom `MyCallback`.
+- **Metrics**: List of metrics to evaluate the model, including categorical accuracy, AUC, and F1 score.
+- **Compilation**: The model is compiled with the Adam optimizer, categorical cross-entropy loss, and specified metrics.
+
+```python
+my_callback = MyCallback()
+model = construct_model()
+CALLBACKS = [my_callback]
+METRICS = [tf.keras.metrics.CategoricalAccuracy(name='acc'),
+           tf.keras.metrics.AUC(name='auc'), 
+           tfa.metrics.F1Score(num_classes=4)]
+model.compile(optimizer='adam',
+              loss=tf.losses.CategoricalCrossentropy(),
+              metrics=METRICS)
+model.summary()
+```
+
+<hr>
 
 ## Model Model_1
 ```
