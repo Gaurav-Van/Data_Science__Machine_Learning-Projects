@@ -278,46 +278,337 @@ model.compile(optimizer='adam',
               metrics=METRICS)
 model.summary()
 ```
+![image](https://github.com/user-attachments/assets/14fc4130-ef83-4182-a578-3fdf007ca38e)
+
+```python
+EPOCHS = 100
+history = model.fit(train_data, train_labels, validation_data=(val_data, val_labels), callbacks=CALLBACKS, epochs=EPOCHS)
+```
 
 <hr>
 
 ## Model Model_1
+
+**Parameter and Configuration**
 ```
 - Only Custom Callbacks
 - Dropout after conv_block(64)
 ```
+```python
+model_dir = "./Model " + "Model_1"
+model.save(model_dir, save_format='h5')
+model1 = tf.keras.models.load_model("/kaggle/working/Model Model_1")
+model1.summary()
+```
 ![image](https://github.com/Gaurav-Van/Data_Science__Machine_Learning-Projects/assets/50765800/72e3be04-e150-436f-91bc-54e751b6fc43)
+
+```python
+fig, ax = plt.subplots(1, 3, figsize = (30, 5))
+ax = ax.ravel()
+
+for i, metric in enumerate(["acc", "auc", "loss"]):
+    ax[i].plot(history.history[metric])
+    ax[i].plot(history.history["val_" + metric])
+    ax[i].set_title("Model {}".format(metric))
+    ax[i].set_xlabel("Epochs")
+    ax[i].set_ylabel(metric)
+    ax[i].legend(["train", "val"])
+```
 ![image](https://github.com/Gaurav-Van/Data_Science__Machine_Learning-Projects/assets/50765800/2b37330c-ad24-4a16-9cdb-5eb18c0cf881)
 
 ### Results from Model_1
+```python
+train_scores = model1.evaluate(train_data, train_labels)
+val_scores = model1.evaluate(val_data, val_labels)
+test_scores = model1.evaluate(test_data, test_labels)
+print("Training Accuracy: %.2f%%"%(train_scores[1] * 100))
+print("Validation Accuracy: %.2f%%"%(val_scores[1] * 100))
+print("Testing Accuracy: %.2f%%"%(test_scores[1] * 100))
+```
 ![image](https://github.com/Gaurav-Van/Data_Science__Machine_Learning-Projects/assets/50765800/077eddb4-a0f7-4d9b-916a-be642094137c)
+
+**Classification Report**
+```python
+CLASSES = [ 'NonDemented',
+            'VeryMildDemented',
+            'MildDemented',
+            'ModerateDemented']
+
+pred_labels = model1.predict(test_data)
+
+def roundoff(arr):
+    arr[np.argwhere(arr != arr.max())] = 0
+    arr[np.argwhere(arr == arr.max())] = 1
+    return arr
+
+for labels in pred_labels:
+    labels = roundoff(labels)
+
+print(classification_report(test_labels, pred_labels, target_names=CLASSES))
+```
+![image](https://github.com/user-attachments/assets/a0f3031d-3f26-4604-99da-41da3e72d4a0)
+
+**Balanced Accuracy Score and Matthew's Correlation Coefficient**
+
+**Balanced Accuracy** Score is a metric used to evaluate the performance of a classification model, especially in the presence of imbalanced datasets. It is defined as the average of sensitivity (true positive rate) and specificity (true negative rate). This metric is particularly useful when the classes are imbalanced, as it gives equal weight to both classes, ensuring that the performance on the minority class is not overshadowed by the majority class.
+
+**Matthew’s Correlation Coefficient (MCC)** is another robust metric for evaluating the performance of binary classification models. It takes into account all four quadrants of the confusion matrix: true positives, true negatives, false positives, and false negatives. MCC is particularly valued for its ability to provide a balanced measure even when the classes are imbalanced. The coefficient ranges from -1 to +1, where +1 indicates perfect prediction, 0 indicates no better than random prediction, and -1 indicates total disagreement between prediction and observation. 
+
+```python
+print("Balanced Accuracy Score: {} %".format(round(BAS(test_ls, pred_ls) * 100, 2)))
+print("Matthew's Correlation Coefficient: {} %".format(round(MCC(test_ls, pred_ls) * 100, 2)))
+```
+![image](https://github.com/user-attachments/assets/e4f2b3b8-b5a5-45a9-ac98-f4f69cc59d1d)
+
 ![image](https://github.com/Gaurav-Van/Data_Science__Machine_Learning-Projects/assets/50765800/483dfdc2-3043-4124-8e6c-b067ae87fc34)
 
 <hr>
 
 ## Model Model_2
+
+**Parameter and Configuration**
 ```
 - Custom + Reduce LR on Plateau Callbacks
 - No Droput After conv block(64)
 ```
+```python
+model_dir = "./Model " + "Model_2"
+model.save(model_dir, save_format='h5')
+model2 = tf.keras.models.load_model("/kaggle/working/Model Model_2")
+model2.summary()
+```
 ![image](https://github.com/Gaurav-Van/Data_Science__Machine_Learning-Projects/assets/50765800/566fade7-7b9c-4ab7-ae39-2f1bf6d7a365)
+```python
+fig, ax = plt.subplots(1, 3, figsize = (30, 5))
+ax = ax.ravel()
+
+for i, metric in enumerate(["acc", "auc", "loss"]):
+    ax[i].plot(history.history[metric])
+    ax[i].plot(history.history["val_" + metric])
+    ax[i].set_title("Model {}".format(metric))
+    ax[i].set_xlabel("Epochs")
+    ax[i].set_ylabel(metric)
+    ax[i].legend(["train", "val"])
+```
 ![image](https://github.com/Gaurav-Van/Data_Science__Machine_Learning-Projects/assets/50765800/0445f7fc-f67a-4b81-a419-400f160ab375)
 
 ### Results from Model_2
+```python
+train_scores = model2.evaluate(train_data, train_labels)
+val_scores = model2.evaluate(val_data, val_labels)
+test_scores = model2.evaluate(test_data, test_labels)
+print("Training Accuracy: %.2f%%"%(train_scores[1] * 100))
+print("Validation Accuracy: %.2f%%"%(val_scores[1] * 100))
+print("Testing Accuracy: %.2f%%"%(test_scores[1] * 100))
+```
 ![image](https://github.com/Gaurav-Van/Data_Science__Machine_Learning-Projects/assets/50765800/6faff82e-a00a-4e17-9348-e98e9a480803)
+
+**Classification Report**
+```python
+CLASSES = [ 'NonDemented',
+            'VeryMildDemented',
+            'MildDemented',
+            'ModerateDemented']
+
+pred_labels = model2.predict(test_data)
+
+def roundoff(arr):
+    arr[np.argwhere(arr != arr.max())] = 0
+    arr[np.argwhere(arr == arr.max())] = 1
+    return arr
+
+for labels in pred_labels:
+    labels = roundoff(labels)
+
+print(classification_report(test_labels, pred_labels, target_names=CLASSES))
+```
+![image](https://github.com/user-attachments/assets/63c4e6a0-a4bc-48cc-8580-183a27df5500)
+
+**Balanced Accuracy Score and Matthew's Correlation Coefficient**
+
+**Balanced Accuracy** Score is a metric used to evaluate the performance of a classification model, especially in the presence of imbalanced datasets. It is defined as the average of sensitivity (true positive rate) and specificity (true negative rate). This metric is particularly useful when the classes are imbalanced, as it gives equal weight to both classes, ensuring that the performance on the minority class is not overshadowed by the majority class.
+
+**Matthew’s Correlation Coefficient (MCC)** is another robust metric for evaluating the performance of binary classification models. It takes into account all four quadrants of the confusion matrix: true positives, true negatives, false positives, and false negatives. MCC is particularly valued for its ability to provide a balanced measure even when the classes are imbalanced. The coefficient ranges from -1 to +1, where +1 indicates perfect prediction, 0 indicates no better than random prediction, and -1 indicates total disagreement between prediction and observation. 
+
+```python
+print("Balanced Accuracy Score: {} %".format(round(BAS(test_ls, pred_ls) * 100, 2)))
+print("Matthew's Correlation Coefficient: {} %".format(round(MCC(test_ls, pred_ls) * 100, 2)))
+```
+![image](https://github.com/user-attachments/assets/85213e63-2f06-4a82-b896-4ad58b82a06d)
+
 ![image](https://github.com/Gaurav-Van/Data_Science__Machine_Learning-Projects/assets/50765800/0c874f05-09e0-43a4-a352-bb451eaaf26b)
 
 <hr>
 
 ## Model Inception V3
+
+InceptionV3 is a deep convolutional neural network architecture that has been pre-trained on the ImageNet dataset. It is known for its efficiency and high performance in image classification tasks. The architecture includes multiple convolutional layers and inception modules that capture various levels of abstraction in the input images. By leveraging pre-trained weights, InceptionV3 can be fine-tuned for specific tasks with relatively small datasets.
+
+1. **Loading the Pre-trained InceptionV3 Model**
+   - **Purpose**: Initialize the InceptionV3 model with pre-trained weights from ImageNet, excluding the top fully connected layers.
+   - **Parameters**:
+     - `input_shape`: Specifies the shape of the input images.
+     - `include_top`: Set to `False` to exclude the fully connected layers at the top of the network.
+     - `weights`: Specifies the pre-trained weights to load.
+
+   ```python
+   inception_model = InceptionV3(input_shape=(176, 176, 3), include_top=False, weights="imagenet")
+   ```
+
+2. **Freezing the Layers of InceptionV3**
+   - **Purpose**: Prevent the weights of the pre-trained InceptionV3 layers from being updated during training.
+   - **Implementation**: Iterate over each layer in the InceptionV3 model and set `trainable` to `False`.
+
+   ```python
+   for layer in inception_model.layers:
+       layer.trainable = False
+   ```
+
+3. **Custom Model Construction**
+   - **Purpose**: Build a custom sequential model using the pre-trained InceptionV3 as the base, followed by additional layers for further processing and classification.
+   - **Layers**:
+     - `Dropout`: Regularization layer to prevent overfitting.
+     - `GlobalAveragePooling2D`: Reduces each feature map to a single value, maintaining spatial information.
+     - `Flatten`: Flattens the input to a 1D array.
+     - `BatchNormalization`: Normalizes the activations of the previous layer.
+     - `Dense`: Fully connected layers with specified units and activation functions.
+
+   ```python
+   custom_inception_model = Sequential([
+       inception_model,
+       Dropout(0.5),
+       GlobalAveragePooling2D(),
+       Flatten(),
+       BatchNormalization(),
+       Dense(512, activation='relu'),
+       BatchNormalization(),
+       Dropout(0.5),
+       Dense(256, activation='relu'),
+       BatchNormalization(),
+       Dropout(0.5),
+       Dense(128, activation='relu'),
+       BatchNormalization(),
+       Dropout(0.5),
+       Dense(64, activation='relu'),
+       Dropout(0.5),
+       BatchNormalization(),
+       Dense(4, activation='softmax')
+   ], name="inception_cnn_model")
+   ```
+
+4. **Custom Callback Class**
+   - **Purpose**: Define a custom callback to stop training when the accuracy exceeds 99%.
+   - **Method**:
+     - `on_epoch_end`: Checks the accuracy at the end of each epoch and stops training if the threshold is met.
+
+   ```python
+   class MyCallback(tf.keras.callbacks.Callback):
+       def on_epoch_end(self, epoch, logs={}):
+           if logs.get('acc') > 0.99:
+               print("\nReached accuracy threshold! Terminating training.")
+               self.model.stop_training = True
+   my_callback = MyCallback()
+   ```
+
+5. **ReduceLROnPlateau Callback**
+   - **Purpose**: Reduce the learning rate when the validation loss plateaus to stabilize the training process.
+   - **Parameters**:
+     - `monitor`: Metric to be monitored.
+     - `patience`: Number of epochs with no improvement after which learning rate will be reduced.
+
+   ```python
+   rop_callback = ReduceLROnPlateau(monitor="val_loss", patience=3)
+   ```
+
+6. **Model Compilation**
+   - **Purpose**: Compile the model with specified optimizer, loss function, and evaluation metrics.
+   - **Parameters**:
+     - `optimizer`: Optimization algorithm (RMSprop).
+     - `loss`: Loss function (Categorical Crossentropy).
+     - `metrics`: List of metrics to evaluate the model's performance.
+
+   ```python
+   METRICS = [tf.keras.metrics.CategoricalAccuracy(name='acc'),
+              tf.keras.metrics.AUC(name='auc'),
+              tfa.metrics.F1Score(num_classes=4)]
+   CALLBACKS = [my_callback, rop_callback]
+   
+   custom_inception_model.compile(optimizer='rmsprop',
+                                  loss=tf.losses.CategoricalCrossentropy(),
+                                  metrics=METRICS)
+   ```
+
+7. **Model Summary**
+   - **Purpose**: Display the architecture of the model, including the layers and their parameters.
+
+   ```python
+   custom_inception_model.summary()
+   ```
+
 ![image](https://github.com/Gaurav-Van/Data_Science__Machine_Learning-Projects/assets/50765800/ef8b9a85-e9f3-4c82-bbe8-2cb90ccb7601)
 ![image](https://github.com/Gaurav-Van/Data_Science__Machine_Learning-Projects/assets/50765800/a4b0beb5-cfd9-4b9f-91fb-0c8ef1be8cd4)
+```python
+fig, ax = plt.subplots(1, 3, figsize = (30, 5))
+ax = ax.ravel()
+
+for i, metric in enumerate(["acc", "auc", "loss"]):
+    ax[i].plot(history.history[metric])
+    ax[i].plot(history.history["val_" + metric])
+    ax[i].set_title("Model {}".format(metric))
+    ax[i].set_xlabel("Epochs")
+    ax[i].set_ylabel(metric)
+    ax[i].legend(["train", "val"])
+```
 ![image](https://github.com/Gaurav-Van/Data_Science__Machine_Learning-Projects/assets/50765800/a6d1201f-add4-46b5-9e68-1ce56b50ec48)
 
 ### Results from Inception V3
+```python
+model2 = custom_inception_model
+train_scores = model2.evaluate(train_data, train_labels)
+val_scores = model2.evaluate(val_data, val_labels)
+test_scores = model2.evaluate(test_data, test_labels)
+print("Training Accuracy: %.2f%%"%(train_scores[1] * 100))
+print("Validation Accuracy: %.2f%%"%(val_scores[1] * 100))
+print("Testing Accuracy: %.2f%%"%(test_scores[1] * 100))
+```
 ![image](https://github.com/Gaurav-Van/Data_Science__Machine_Learning-Projects/assets/50765800/2558ed8c-bc2f-480d-9262-57467e5bc051)
+
+**Classification Report**
+```python
+CLASSES = [ 'NonDemented',
+            'VeryMildDemented',
+            'MildDemented',
+            'ModerateDemented']
+
+pred_labels = model2.predict(test_data)
+
+def roundoff(arr):
+    arr[np.argwhere(arr != arr.max())] = 0
+    arr[np.argwhere(arr == arr.max())] = 1
+    return arr
+
+for labels in pred_labels:
+    labels = roundoff(labels)
+
+print(classification_report(test_labels, pred_labels, target_names=CLASSES))
+```
+![image](https://github.com/user-attachments/assets/0f23f25f-a3d5-4117-9b23-cf4c90246e82)
+
+**Balanced Accuracy Score and Matthew's Correlation Coefficient**
+
+**Balanced Accuracy** Score is a metric used to evaluate the performance of a classification model, especially in the presence of imbalanced datasets. It is defined as the average of sensitivity (true positive rate) and specificity (true negative rate). This metric is particularly useful when the classes are imbalanced, as it gives equal weight to both classes, ensuring that the performance on the minority class is not overshadowed by the majority class.
+
+**Matthew’s Correlation Coefficient (MCC)** is another robust metric for evaluating the performance of binary classification models. It takes into account all four quadrants of the confusion matrix: true positives, true negatives, false positives, and false negatives. MCC is particularly valued for its ability to provide a balanced measure even when the classes are imbalanced. The coefficient ranges from -1 to +1, where +1 indicates perfect prediction, 0 indicates no better than random prediction, and -1 indicates total disagreement between prediction and observation. 
+
+```python
+print("Balanced Accuracy Score: {} %".format(round(BAS(test_ls, pred_ls) * 100, 2)))
+print("Matthew's Correlation Coefficient: {} %".format(round(MCC(test_ls, pred_ls) * 100, 2)))
+```
+![image](https://github.com/user-attachments/assets/1dd60eac-8da9-4cb8-b9f4-3c013278a297)
+
 ![image](https://github.com/Gaurav-Van/Data_Science__Machine_Learning-Projects/assets/50765800/16a9294e-7535-49ff-b661-f8fa26eb2cbb)
 
+<hr>
 
 
 
